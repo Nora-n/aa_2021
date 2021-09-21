@@ -2,11 +2,13 @@
 
 \usepackage{txfonts}
 \usepackage[colorlinks, breaklinks]{hyperref}
+\usepackage{graphicx}
+\graphicspath{{Article_figures/}{General_figures/}}
 \hypersetup{linkcolor=blue, citecolor=blue, filecolor=black, urlcolor=blue}
 
 \newcommand{\orcid}[1]{
 \href{https://orcid.org/#1}{
-\includegraphics[height=11pt]{General_figures/ORCIDiD_icon128x128.png}}}
+\includegraphics[height=11pt]{ORCIDiD_icon128x128.png}}}
 
 \newcommand{\prob}[2]{\mathcal{P}\left( #1 \mid #2\right)}
 
@@ -65,35 +67,190 @@ to the currently-used distributions in SNANA.}
 \maketitle
 
 \section{Introduction}
+\textit{General talk about SNe Ia, Hubble diagram, constraints and assumptions
+from BBC to fit HD.}
 
-General talk about SNe Ia, Hubble diagram, constraints and assumptions from BBC
-to fit HD.
+Standardizing SNe Ia led to the discovery of the acceleration of the Universe's
+expansion: thanks to their color and stretch parameters, the systematic
+uncertainty on their absolute magnitude and thus their distance was greatly
+reduced. Dark energy is commonly thought to be the cause of this expansion, and
+its equation-of-state parameter, $w$, is currently know down to $\approx$ 4\% by
+combining constraints from both SNe Ia and the Cosmic Microwave Background. If
+we want to enhance that knowledge, apart from the statistical part it's the
+systematic budget that needs to go lower.
 
-\section{First step in SNANA framework}\label{sec:sample}
+With that goal in mind, some recent studies try to improve the known
+correlations. In NR21, we presented an initial study of the drift of the
+underlying SNe~Ia stretch distribution as the function of redshift. We based
+this study on the assumption of two populations of SNe~Ia, young and old, and
+implemented different modelings of their distributions to better represent the
+observed data. For that end we took SNe~Ia data and created a complete sample by
+applying redshift cuts corresponding to the expected distance where no selection
+effects should impact each survey. This approach was at the time the
+simplest one to implement but does not allow to ponder the impact such a
+modeling has on the cosmology, and mainly on $w$, and skips all selection
+effects altogether.
 
-Where to put NN21 model into SNANA: HOSTLIBS, so need for mass modeling
+Other studies tend to define and refine other correlations between a SN's
+brightness and some observable properties, such as their host-galaxy's mass or
+Star Formation Rate. One of the most common ways to test these correlations is
+to simulate surveys by using underlying distributions of parameters and
+correlations between them with the aim to find which ones come closest to the
+actual data. In the SNANA framework, it's a galaxy's stellar mass
+($M_\mathrm{stellar}$) that is assumed as the main observable responsible for
+its environmental effects on SNe Ia. Selection effects are simulated for each
+survey with great accuracy, and the goal is to correct the values of SNe
+affected by Malmquist bias by computing the average
+
+\section{Modeling}\label{sec:model}
+In our previous work N21, we had determined a relationship between SNe~Ia
+stretches and redshift by using the evolution of the fraction of young SNe~Ia,
+$\delta(z)$, after having modelized each sub-population's underlying stretch
+populations based on LsSFR, a tracer for the age of a supernova.
+
+In order to simulate SNe, we require a host galaxy to follow the distributions
+of what has been observed by different surveys. While we argue that LsSFR is a
+better tracer of a SNe's environment (Briday 21), most survey characterize
+galaxies using their stellar mass. Therefore, to compare the implication of our
+modeling based on LsSFR with what other surveys observed, we need to modelize
+galaxy masses with respect to LsSFR.
+
+\subsection{Modeling the mass}
+
+Following NR21, we use the LsSFR as the tracer of the age of a SN on the mass
+estimates from SNf, then model the young and old population through a series of
+different parameterizations and pick the lowest AIC one. However, different
+techniques of mass estimation give different output value for a same galaxy and
+could imply a shift between surveys. SNf masses where computed using Eq. 8 of
+Taylor 2011 (see Rigault 20). It involves the absolute $i$-band AB-agnitude
+$M_i$, deduced from the apparent magnitude $m_i$ knowing the galaxy's redshift
+but assumes that the observed $i$ band is close to the restframe one, which is
+true for the redshifts on the survey which are below 0.05. However, surveys from
+the Pantheon sample are at higher redshifts and used SED to avoid K-corrections
+in that procedure. In order to maintain coherence between the mass modeling
+based on SNf data and the masses measured in the Pantheon surveys we will
+simulate, we needed to use the same method for each object. We thus chose to use
+SED fitting for everyone.
+
+Having done that, the best, lowest-AIC model for the mass distribution of the
+younger population ($\log(\mathrm{LsSFR})\geq-10.82$) is modeled as a single
+normal distribution $\mathcal{N}(\mu_\mathrm{y}, \sigma_\mathrm{y}{}^2)$, and
+the stretch distribution of the older population ($\log(\mathrm{LsSFR})<-10.82$)
+is modeled as a bimodal Gaussian mixture $a\times \mathcal{N}(\mu_\mathrm{o,1},
+\sigma_\mathrm{o,1}{}^2) + (1-a)\times \mathcal{N}(\mu_\mathrm{o,2},
+\sigma_\mathrm{o,2}{}^2)$, $a$ representing the relative effect of the two
+modes.
+
+\begin{figure}[]
+    \centering
+    \includegraphics[width=\linewidth]{model_mass_3G3M3S_hist.pdf}
+    \caption{\textit{Main}: SED-fitted host mass
+        ($M_\mathrm{host}$) as a function of the LsSFR for SNfactory SNe. The color
+        corresponds to the probability, $p_y$, for the SNe~Ia to be young, i.e.,
+        to have $\log\mathrm{LsSFR} \geq -10.82$ \citep[see][]{rigault2020}.
+    \textit{Right}: $p_y$-weighted histogram of the SN masses, as well as the
+adjusted model; contributions of the younger and older population are shown
+in purple and yellow, respectively.}
+    \label{fig:massmodel}
+\end{figure}
+
+\begin{table*}
+    \centering
+    \caption{Best-fit values of the parameters for the mass distribution
+    model when applied to the SNfactory dataset only (114 SNe~Ia).}
+    \label{tab:modelresults}
+    \begin{tabular}{lccccccc}
+        \hline\hline
+        Sample  & $\mu_\mathrm{y}  $ & $\sigma_\mathrm{y}$
+                & $\mu_\mathrm{o,1}$ & $\sigma_\mathrm{o,1}$
+                & $\mu_\mathrm{o,2}$ & $\sigma_\mathrm{o,2}$
+                & $a$ \\
+        \hline
+        SNfactory & $ 9.41 \pm ???? $ & $0.62 \pm ????$
+                  & $10.60 \pm ???? $ & $0.38 \pm ????$
+                  & $ 8.74 \pm ???? $ & $0.43 \pm ????$
+                  & $ 0.90 \pm ???? $ \\
+        \hline
+    \end{tabular}
+\end{table*}
+
+\subsection{Input generation}
+
+Then, from a redshift, we can generate a mass and a stretch. This is done with
+the \textit{SNprop} Python module (INSERT URL). Given a redshift or lists of
+redshift, it takes the expected fraction of young stars using $\delta(z) =
+\left( K^{-1}\times \left( 1+z \right)^{-2.8} + 1 \right)^{-1}$ (Fig.
+\ref{fig:deltaz} from \cite{rigault2020} then sets a ``young'' or ``old'' flag
+by picking a random value between 0 and 1 and comparing it to said fraction. If
+the random value is lower, the SN that will be simulated is young. The higher
+the $z$, the higher the $\delta(z)$, and thus the lower the probability to flag
+it young. Stretch values are then generated with the previous NR21 model
+depending whether the progenitor is considered young or old, same for old. We
+also include the magnitude shift which we intend to be the underlying reason
+behind the mass step.
+
+\begin{figure}[]
+    \centering
+    \includegraphics[width=\linewidth]{deltaz_hist_yo-random.pdf}
+    \caption{\textit{Orange}: Estimated fraction of young SNe as a function of
+        redshift. \textit{Histograms}: Number of SNe in bins of redshift for the
+        3 main surveys of the Pantheon sample, not scaled. \textit{Red vertical
+        lines}: For each $z$, a random number $a$ between 0 and 1 is picked: if
+    it's lower (higher) than $\delta(z)$ at that redshift then the SN will be
+young (old), and the distributions of mass and stretch to pick from will follow
+this flag.}
+    \label{fig:deltaz}
+\end{figure}
 
 \subsection{Generating HOSTLIBs}
-
-Generate $z$, take closet $M$ entry in a table of host galaxies (HOSTLIB), then
+Generate $z$, take closest $M$ entry in a table of host galaxies (HOSTLIB), then
 pick $x_1$, $c$ assuming underlying relationships defined by the BBC team.
 Because we want to make these simulations with an evolving underlying
 distribution, we have to replace then $x_1$ values by what is estimated by our
-previous model. This is done with the \textit{SNprop} Python module (INSERT
-URL). Given a redshift or lists of redshift, it takes the expected fraction of
-young stars using $\delta(z) = \left( K^{-1}\times \left( 1+z \right)^{-2.8} + 1
-\right)^{-1}$ from \cite{rigault2020} then sets a ''young'' or ''old'' flag by
-picking a random value between 0 and 1 and comparing it to said fraction. If the
-random value is lower, the SN that will be simulated is young. The higher the
-$z$, the higher the $\delta(z)$, and thus the lower the probability to flag it
-young. Stretch values are then generated with the previous NR21 model depending
-whether the progenitor is considered young or old.
+previous model. 
 
-\subsection{Modeling the mass}
-Includes: testing mass estimates, doing the same estimate on all the objects we
-used in NR21 for coherence across the study, then choosing a model like NR21.
+\section{SNANA}
+What is SNANA doing generally: 3 steps.
 
-\section{Methodology}\label{sec:modeling}
+Model SN and what will a survey look like: lightcurves
+Fitting with SALT.2
+Compute distance
+
+In the simulation you take an underlying model of how a SN works and run that
+through an obversing lens of a survey to use them like data then fit, and infer
+deistances. Basic SNANA. Key is saying what is the definition of a realistic
+model? SK16, but no relation with galaxy. P21 or M20 introduced a link between
+the two thanks to a HOSTLIB: take a model and turn them into objects. SK16 is
+galaxy distribution from which you draw, P21 is a list with the distrubtion
+already in it, linking the relationships and $x_1$ and stuff already drawn. But
+there's no evolution in it, and we want to do that. Forward model that through.
+PREDICTIVE.
+
+SK16: SNe independent galaxies
+P21: There is a relationship, we'll try to guess it. Take data bns of mass, and
+calculate what the distribtion of stretch is for each. Looks differently in
+different bins: as a function of mass they have distribution. Backward models.
+N21: our data is independent and we use it to show tht it work on other data at
+higher redshift, is predictive.
+
+General, Brodie, us; no lightcurve fitting, and at the end of hostlib section w
+simulate antheon
+
+Compare the , x, c distributons we use wih data
+
+Section 3
+
+Having mass isn't constitutive of SNANA, not a requirment, but we use it because
+the actual data we compare our simulated data to is described using mass. So we
+need a link betwwen LsSFR to mass: high-redshift galaxies only have mass
+measurments, not LsSFR. Quote Martin's paper.
+
+given model and observation strategy, what do you see like SIMSURVEY.
+
+SImulation part of SNANA separate from distance.
+
+
+\section{Results of modeling}
 \begin{itemize}
     \item Recreate non-evolving, POPOVIC 21 model;
     \item Test different inputs to reproduce what we want to test.
@@ -102,7 +259,7 @@ used in NR21 for coherence across the study, then choosing a model like NR21.
 How to check validity of results: SNprop module, copute probability of fit with
 a 2D gaussian KDE.
 
-\section{Results}
+\section{Impact on cosmology}
 What we want is not so much $w$ than $\Delta w$ wrt. best current work. We find
 x\% and here are the contours.
 
@@ -349,10 +506,10 @@ al.\ 2015, \apj, 813, 137
 
 % S
 
-\bibitem[Sako et al.(2008)]{sako2008} Sako, M., Bassett, B., Becker, A., et al.\
+\bibitem[Sako et al.(2008)]{sako,2008} Sako, M., Bassett, B., Becker, A., et al.\
 2008, \aj, 135, 348
 
-\bibitem[Scannapieco \& Bildsten(2005)]{scannapieco2005} Scannapieco, E., \&
+\bibitem[Scannapieco \& Bildsten(2005)]{scannapieco,2005} Scannapieco, E., \&
 Bildsten, L.\ 2005, \apjl, 629, L85 
 
 \bibitem[Scolnic et al.(2014)]{scolnic2014} Scolnic, D., Rest, A., Riess, A., et
@@ -364,8 +521,8 @@ al.\ 2014, \apj, 795, 45
 \bibitem[Scolnic et al.(2018)]{scolnic2018a} Scolnic, D.~M., Jones, D.~O., Rest,
 A., et al.\ 2018a, \apj, 859, 101
 
-\bibitem[Scolnic et al.(2019)]{scolnicastro2020} Scolnic, D., Perlmutter, S.,
-Aldering, G., et al.\ 2019, Astro2020: Decadal Survey on Astronomy and
+\bibitem[Scolnic et al.(2019)]{scolnicastro,2020} Scolnic, D., Perlmutter, S.,
+Aldering, G., et al.\ 2019, Astro,2020: Decadal Survey on Astronomy and
 Astrophysics, 2020, 270
 
 \bibitem[Shariff et al.(2016)]{shariff2016} Shariff, H., Jiao, X., Trotta, R.,
